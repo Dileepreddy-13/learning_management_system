@@ -42,7 +42,7 @@ const App = () => {
 
         </Routes>
       </div>
-      <Footer />
+      {!isEducatorRoute && <Footer />}
     </div>
   )
 }
