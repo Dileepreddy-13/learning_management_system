@@ -13,6 +13,7 @@ import AddCourse from './pages/educator/AddCourse'
 import StudentsEnrolled from './pages/educator/StudentsEnrolled'
 import Navbar from './components/student/Navbar'
 import Footer from './components/student/Footer'
+import 'quill/dist/quill.snow.css'
 
 const App = () => {
 
@@ -29,12 +30,12 @@ const App = () => {
           <Route path='/course-list' element={< CoursesList />} />
           <Route path='/course-list/:input' element={< CoursesList />} />
           <Route path='/course/:id' element={< CourseDetails />} />
-          <Route path='my-enrollments' element={< MyEnrollments />} />
+          <Route path='/my-enrollments' element={< MyEnrollments />} />
           <Route path='/loading/:path' element={< Loading />} />
           <Route path='/player/:courseId' element={< Player />} />
 
           <Route path='/educator' element={< Educator />} >
-            <Route path='dashboard' element={< Dashboard />} />
+            <Route path='/educator' element={< Dashboard />} />
             <Route path='my-courses' element={< MyCourses />} />
             <Route path='add-course' element={< AddCourse />} />
             <Route path='students-enrolled' element={< StudentsEnrolled />} />
