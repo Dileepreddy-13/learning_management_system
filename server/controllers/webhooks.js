@@ -1,5 +1,5 @@
 import { Webhook } from 'svix'
-import  User  from '../models/User.js'
+import User from '../models/User.js'
 
 const webhookSecret = process.env.CLERK_WEBHOOK_SECRET
 
@@ -20,23 +20,25 @@ export const clerkWebhooks = async (req, res) => {
 
         switch (type) {
             case 'user.created':
-                const { id, name, email_addresses, profile_image_url } = data
+                const { id, first_name, last_name, email_addresses, image_url } = data
+
                 const newUser = new User({
                     _id: id,
-                    name: name.first_name + ' ' + name.last_name,
-                    email: email_addresses[0].email_address,
-                    imageUrl: profile_image_url,
+                    name: `${first_name || ''} ${last_name || ''}`,
+                    email: email_addresses[0]?.email_address,
+                    imageUrl: image_url,
                 })
+
                 await newUser.save()
                 res.json({})
                 break;
 
             case 'user.updated': {
-                const { id, name, email_addresses, profile_image_url } = data
+                const { id, first_name, last_name, email_addresses, image_url } = data
                 await User.findByIdAndUpdate(id, {
-                    name: name.first_name + ' ' + name.last_name,
-                    email: email_addresses[0].email_address,
-                    imageUrl: profile_image_url,
+                    name: `${first_name || ''} ${last_name || ''}`,
+                    email: email_addresses[0]?.email_address,
+                    imageUrl: image_url,
                 })
                 res.json({})
                 break;

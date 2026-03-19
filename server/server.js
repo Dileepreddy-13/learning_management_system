@@ -14,7 +14,7 @@ app.get('/', (req, res) => {
     res.send('Hello World!')
 })
 
-app.post('/clerk', express.json(), clerkWebhooks)
+app.post('/clerk', express.raw({ type: 'application/json' }), clerkWebhooks)
 
 const PORT = process.env.PORT || 5000
 
