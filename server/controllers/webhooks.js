@@ -5,9 +5,12 @@ const webhookSecret = process.env.CLERK_WEBHOOK_SECRET
 
 
 export const clerkWebhooks = async (req, res) => {
+    console.log('Received webhook request:', req.body)
     try {
         const whook = new Webhook(webhookSecret)
+        console.log("Webhook hit")
 
+        console.log("Headers:", req.headers)
         await whook.verify(JSON.stringify(req.body),
             {
                 'svix-id': req.headers['svix-id'],
@@ -55,6 +58,7 @@ export const clerkWebhooks = async (req, res) => {
                 break;
         }
     } catch (error) {
+        console.error(error)
         res.json({ success: false, message: error.message })
     }
 }
