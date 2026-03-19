@@ -1,5 +1,5 @@
 import { Webhook } from 'svix'
-import { User } from '../models/User.js'
+import  User  from '../models/User.js'
 
 const webhookSecret = process.env.CLERK_WEBHOOK_SECRET
 
