@@ -56,3 +56,46 @@ export const getEducatorCourses = async (req, res) => {
         res.json({ success: false, message: error.message })
     }
 }
+
+export const educatorDashboardData = async (req, res) => {
+    try {
+        const { userId } = req.auth()
+        const courses = await Course.find({ educatorId: userId })
+        const totalCourses = courses.length
+        const courseIds = courses.map(course => course._id)
+        const purchases = await Purchase.find({ courseId: { $in: courseIds }, status: 'completed' })
+        const totalEarnings = purchases.reduce((sum, purchase) => sum + purchase.amount, 0)
+        const enrolledStudentsData = []
+        for (const course of courses) {
+            const students = await User.find({ _id: { $in: course.enrolledStudents } }, 'name imageUrl')
+            students.forEach(student => {
+                enrolledStudentsData.push({
+                    courseTitle: course.courseTitle,
+                    student
+                })
+            })
+        }
+        res.json({ success: true, dashboardData : { totalCourses, totalEarnings, enrolledStudentsData } })
+    } catch (error) {
+        console.error(error)
+        res.json({ success: false, message: error.message })
+    }
+}
+
+export const getEnrolledStudentsData = async (req, res) => {
+    try {
+        const { userId } = req.auth()
+        const courses = await Course.find({ educatorId: userId })
+        const courseIds = courses.map(course => course._id)
+        const purchases = await Purchase.find({ courseId: { $in: courseIds }, status: 'completed' }).populate('userId', 'name imageUrl').populate('courseId', 'courseTitle')
+        const enrolledStudentsData = purchases.map(purchase => ({
+            student : purchase.userId,
+            courseTitle : purchase.courseId.courseTitle,
+            purchaseDate : purchase.createdAt
+        }))
+        res.json({ success: true, enrolledStudentsData })
+
+    } catch (error) {
+        res.json({ success: false, message: error.message })
+    }
+}
