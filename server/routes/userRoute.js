@@ -8,6 +8,6 @@ userRouter.get('/enrolled-courses', userEnrolledCourses)
 userRouter.post('/purchase', purchaseCourse)
 userRouter.get('/get-course-progress/:courseId', getUserProgress)
 userRouter.post('/update-course-progress', updateUserCourseProgress)
-userRouter.post('/add-user-rating', addUserRating)
+userRouter.post('/add-rating', addUserRating)
 
 export default userRouter
