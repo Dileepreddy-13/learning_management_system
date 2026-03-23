@@ -5,6 +5,9 @@ import Loading from '../../components/student/Loading'
 import { assets } from '../../assets/assets'
 import humanizeDuration from 'humanize-duration'
 import YouTube from 'react-youtube'
+import { toast } from 'react-toastify'
+import axios from 'axios'
+import { useUser } from '@clerk/clerk-react'
 
 const CourseDetails = () => {
 
@@ -16,16 +19,62 @@ const CourseDetails = () => {
   const [playerData, setPlayerData] = useState(null)
 
 
-  const { allCourses, calculateRating, calculateChapterTime, calculateCourseTime, calculateTotalLectures, currency } = useContext(AppContext)
+  const { allCourses, calculateRating, calculateChapterTime, calculateCourseTime, calculateTotalLectures, currency, backendURL, userData, getToken } = useContext(AppContext)
+
+  const { user } = useUser()
 
   const fetchCourseData = async () => {
-    const findCourse = allCourses.find(course => course._id === id)
-    setCourseData(findCourse)
+    try {
+      const { data } = await axios.get(`${backendURL}/api/course/${id}`)
+      if (data.success) {
+        setCourseData(data.courseData)
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  const enrollCourse = async () => {
+    try {
+      if (!user) {
+        return toast.warn('Login to enroll')
+      }
+      if (isEnrolled) {
+        return toast.info('Already Enrolled')
+      }
+      const token = await getToken({ template: 'backend' })
+      const { data } = await axios.post(`${backendURL}/api/user/purchase`, { courseId: courseData._id }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      if (data.success) {
+        const { url } = data
+        window.location.replace(url)
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
   }
 
   useEffect(() => {
     fetchCourseData()
-  }, [allCourses, id])
+  }, [id])
+
+  useEffect(() => {
+    if (courseData && userData) {
+      const enrolledCourseIds = (userData.enrolledCourses || []).map((course) =>
+        typeof course === 'object' && course !== null
+          ? (course._id || '').toString()
+          : course.toString()
+      )
+      setIsEnrolled(enrolledCourseIds.includes(courseData._id.toString()))
+    }
+  }, [courseData, userData])
 
   const toggleSection = (index) => {
     setOpenSections(prev => ({ ...prev, [index]: !prev[index] }))
@@ -51,7 +100,7 @@ const CourseDetails = () => {
           </div>
           <div className='mt-2 text-sm'>
             <p>{courseData.enrolledStudents.length} {courseData.enrolledStudents.length > 1 ? 'students' : 'student'}</p>
-            <p className='text-sm'>Course by <span className='text-blue-600 underline'>Skillforge</span></p>
+            <p className='text-sm'>Course by <span className='text-blue-600 underline'>{courseData.educatorId.name}</span></p>
           </div>
           <div className='mt-8 text-gray-800'>
             <h2 className='text-xl font-semibold'>Course Structure</h2>
@@ -131,7 +180,7 @@ const CourseDetails = () => {
                 <p>{calculateTotalLectures(courseData)} lessons </p>
               </div>
             </div>
-            <button className='md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium'>{isEnrolled ? 'Already Enrolled' : 'Enroll Now'}</button>
+            <button onClick={enrollCourse} className='md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium'>{isEnrolled ? 'Already Enrolled' : 'Enroll Now'}</button>
             <div className='mt-6'>
               <p className='md:text-xl text-lg font-medium text-gray-800'>What's in the course?</p>
               <ul className='ml-4 mt-2 text-sm md:text-default list-disc text-gray-500'>

@@ -14,6 +14,7 @@ import StudentsEnrolled from './pages/educator/StudentsEnrolled'
 import Navbar from './components/student/Navbar'
 import Footer from './components/student/Footer'
 import 'quill/dist/quill.snow.css'
+import { ToastContainer } from 'react-toastify'
 
 const App = () => {
 
@@ -23,6 +24,7 @@ const App = () => {
   return (
 
     <div className='flex flex-col min-h-screen bg-white text-default'>
+      <ToastContainer />
       {!isEducatorRoute && <Navbar />}
       <div className="flex-1">
         <Routes>
