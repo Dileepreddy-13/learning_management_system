@@ -6,7 +6,7 @@ const userRouter = express.Router()
 userRouter.get('/data', getUserData)
 userRouter.get('/enrolled-courses', userEnrolledCourses)
 userRouter.post('/purchase', purchaseCourse)
-userRouter.get('/get-course-progress/:courseId', getUserProgress)
+userRouter.post('/get-course-progress', getUserProgress)
 userRouter.post('/update-course-progress', updateUserCourseProgress)
 userRouter.post('/add-rating', addUserRating)
 
