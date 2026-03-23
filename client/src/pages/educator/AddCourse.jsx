@@ -2,9 +2,15 @@ import React, { useEffect, useRef, useState } from 'react'
 import uniqid from 'uniqid'
 import Quill from 'quill'
 import { assets } from '../../assets/assets'
+import { AppContext } from '../../context/AppContext'
+import { useContext } from 'react'
+import { toast } from 'react-toastify'
+import axios from 'axios'
+
 
 const AddCourse = () => {
 
+  const { backendURL, getToken } = useContext(AppContext)
   const quillRef = useRef(null)
   const editorRef = useRef(null)
 
@@ -54,7 +60,14 @@ const AddCourse = () => {
     else if (action === 'remove') {
       setChapters(chapters.map((chapter) => {
         if (chapter.chapterId === chapterId) {
-          chapter.chapterContent.splice(lectureIndex, 1);
+          const updatedLectures = chapter.chapterContent
+            .filter((_, idx) => idx !== lectureIndex)
+            .map((lecture, idx) => ({ ...lecture, lectureOrder: idx + 1 }))
+
+          return {
+            ...chapter,
+            chapterContent: updatedLectures
+          }
         }
         return chapter
       }))
@@ -63,15 +76,27 @@ const AddCourse = () => {
   }
 
   const addLecture = () => {
+    const lectureTitle = lectureDetails.lectureTitle.trim()
+    const lectureUrl = lectureDetails.lectureUrl.trim()
+    const lectureDuration = Number(lectureDetails.lectureDuration)
 
-    const newLecture = {
-      ...lectureDetails,
-      lectureId: uniqid()
+    if (!lectureTitle || !lectureUrl || !lectureDuration || lectureDuration <= 0) {
+      toast.error('Please add valid lecture title, URL and duration')
+      return
     }
 
     setChapters(
       chapters.map((chapter) => {
         if (chapter.chapterId === currentChapterId) {
+          const newLecture = {
+            ...lectureDetails,
+            lectureTitle,
+            lectureUrl,
+            lectureDuration,
+            lectureId: uniqid(),
+            lectureOrder: chapter.chapterContent.length + 1
+          }
+
           return {
             ...chapter,
             chapterContent: [...chapter.chapterContent, newLecture]
@@ -91,7 +116,47 @@ const AddCourse = () => {
     })
   }
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    try {
+      e.preventDefault()
+      if (!image) {
+        toast.error('Please upload a thumbnail image')
+        return
+      }
+
+      const courseData = {
+        courseTitle,
+        courseDescription: quillRef.current.root.innerHTML,
+        coursePrice : Number(coursePrice),
+        discount : Number(discount),
+        courseContent: chapters
+      }
+
+      const formData = new FormData()
+      formData.append('courseData', JSON.stringify(courseData))
+      formData.append('image', image)
+
+      const token = await getToken({ template: 'backend' })
+      const { data } = await axios.post(`${backendURL}/api/educator/add-course`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      if (data.success) {
+        toast.success(data.message)
+        setCourseTitle('')
+        quillRef.current.root.innerHTML = ''
+        setCoursePrice(0)
+        setDiscount(0)
+        setImage(null)
+        setChapters([])
+      } else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
+
   }
   useEffect(() => {
     if (!quillRef.current && editorRef.current) {

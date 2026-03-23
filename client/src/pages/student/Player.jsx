@@ -169,7 +169,7 @@ const Player = () => {
             <div>
               <YouTube videoId={playerData.lectureUrl.split('/').pop()} iframeClassName='w-full aspect-video' />
               <div className='flex justify-between items-center mt-1'>
-                <p>{playerData.chapter}.{playerData.lecture}{playerData.lectureTitle}</p>
+                <p>{playerData.chapter}.{playerData.lecture} - {playerData.lectureTitle}</p>
                 <button onClick={() => markLectureAsCompleted(playerData.lectureId)} className='text-blue-600'>{progressData && progressData.lectureCompleted.includes(playerData.lectureId) ? 'Completed' : 'Mark as complete'}</button>
               </div>
             </div> :

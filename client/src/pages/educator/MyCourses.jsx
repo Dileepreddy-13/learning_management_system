@@ -1,25 +1,44 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { AppContext } from '../../context/AppContext'
 import Loading from '../../components/student/Loading'
+import axios from 'axios'
+import { toast } from 'react-toastify'
 
 const MyCourses = () => {
 
-  const { currency, allCourses } = useContext(AppContext)
+  const { currency, backendURL, getToken, isEducator } = useContext(AppContext)
   const [courses, setCourses] = useState(null)
 
   const fetchEducatorCourses = async () => {
-    setCourses(allCourses)
+    try {
+      const token = await getToken({ template : 'backend' })
+      const { data } = await axios.get(`${backendURL}/api/educator/courses`, {
+        headers : {
+          Authorization : `Bearer ${token}` 
+        }
+      })
+      
+      if(data.success) {
+        setCourses(data.courses)
+      }  else {
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message)
+    }
   }
 
   useEffect(() => {
-    fetchEducatorCourses()
-  }, [allCourses])
+    if(isEducator){
+      fetchEducatorCourses()
+    }
+  }, [isEducator])
 
   return courses ? (
-    <div className='h-screen flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0'>
-      <div className='w-fill'>
+    <div className='h-screen flex flex-col items-start justify-between md:p-8 md:pb-0 p-4 pt-8 pb-0 w-full'>
+      <div className='w-full'>
         <h2 className='pb-4 text-lg font-medium'>My Courses</h2>
-        <div className='flex flex-col items-center overflow-hidden max-w-4xl w-full rounded-md bg-white border border-gray-500/20'>
+        <div className='flex flex-col items-center overflow-hidden w-full rounded-md bg-white border border-gray-500/20'>
           <table className='md:table-auto table-fixed w-full overflow-hidden'>
             <thead className='text-gray-900 border-b border-gray-500/20 text-sm text-left'>
               <tr>
