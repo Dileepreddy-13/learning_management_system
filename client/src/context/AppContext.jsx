@@ -54,7 +54,6 @@ export const AppContextProvider = ({ children }) => {
             if (data.success) {
                 const user = data.userData || data.user
 
-                // Normalize enrolled course ids so UI checks work for ObjectId/object/string shapes.
                 if (user && Array.isArray(user.enrolledCourses)) {
                     user.enrolledCourses = user.enrolledCourses.map((course) =>
                         typeof course === 'object' && course !== null

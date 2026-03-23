@@ -2,22 +2,66 @@ import React, { useState } from 'react'
 import { AppContext } from '../../context/AppContext'
 import { useContext } from 'react'
 import { Line } from 'rc-progress'
+import axios from 'axios'
+import { toast } from 'react-toastify'
+import { useEffect } from 'react'
 
 const MyEnrollments = () => {
 
-  const { enrolledCourses, calculateCourseTime, navigate } = useContext(AppContext)
+  const { enrolledCourses, calculateCourseTime, navigate, userData, fetchUserEnrolledCourses, backendURL, getToken, calculateTotalLectures } = useContext(AppContext)
 
-  const [progressData, setProgressData] = useState([
-    { lecturesCompleted: 2, totalLectures: 4 },
-    { lecturesCompleted: 2, totalLectures: 4 },
-    { lecturesCompleted: 2, totalLectures: 4 },
-    { lecturesCompleted: 2, totalLectures: 4 },
-    { lecturesCompleted: 2, totalLectures: 4 },
-    { lecturesCompleted: 2, totalLectures: 4 },
-    { lecturesCompleted: 2, totalLectures: 4 },
-    { lecturesCompleted: 2, totalLectures: 4 },
+  const [progressData, setProgressData] = useState([])
 
-  ])
+  const getCourseProgress = async () => {
+    try {
+      const token = await getToken({ template: 'backend' })
+
+      const tempProgressArray = await Promise.all(
+        enrolledCourses.map(async (course) => {
+          try {
+            const { data } = await axios.post(
+              `${backendURL}/api/user/get-course-progress`,
+              { courseId: course._id },
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`
+                }
+              }
+            )
+
+            const totalLectures = calculateTotalLectures(course)
+            const lecturesCompleted =
+              data.progressData?.lectureCompleted?.length || 0
+
+            return { totalLectures, lecturesCompleted }
+
+          } catch (err) {
+            return {
+              totalLectures: calculateTotalLectures(course),
+              lecturesCompleted: 0
+            }
+          }
+        })
+      )
+
+      setProgressData(tempProgressArray)
+
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  useEffect(() => {
+    if (userData) {
+      fetchUserEnrolledCourses()
+    }
+  }, [userData])
+
+  useEffect(() => {
+    if (enrolledCourses.length > 0) {
+      getCourseProgress()
+    }
+  }, [enrolledCourses])
 
   return (
     <>
