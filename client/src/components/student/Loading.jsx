@@ -11,6 +11,10 @@ const Loading = () => {
   const { fetchUserData, fetchUserEnrolledCourses } = useContext(AppContext)
 
   useEffect(() => {
+    if (!path) {
+      return
+    }
+
     const loadAndRedirect = async () => {
       try {
         await fetchUserData()
@@ -28,7 +32,7 @@ const Loading = () => {
     }
 
     loadAndRedirect()
-  }, [path, navigate])
+  }, [path, navigate, fetchUserData, fetchUserEnrolledCourses])
 
 
   return (
