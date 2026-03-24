@@ -43,6 +43,7 @@ export const AppContextProvider = ({ children }) => {
     }
 
     const fetchUserData = async () => {
+        if (!user) return null
 
         if (user && user.publicMetadata && user.publicMetadata.role === 'educator') {
             setIsEducator(true)
@@ -50,6 +51,7 @@ export const AppContextProvider = ({ children }) => {
 
         try {
             const token = await getToken({ template: 'backend' })
+            if (!token) return null
             const { data } = await axios.get(`${backendURL}/api/user/data`, {
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -73,7 +75,7 @@ export const AppContextProvider = ({ children }) => {
                 return null
             }
         } catch (error) {
-            toast.error(error.message)
+            if (user) toast.error(error.message)
             return null
         }
     }
@@ -112,7 +114,9 @@ export const AppContextProvider = ({ children }) => {
     }
 
     const fetchUserEnrolledCourses = async () => {
+        
         try {
+            if (!user) return []
             const token = await getToken({ template: 'backend' })
             const { data } = await axios.get(`${backendURL}/api/user/enrolled-courses`, {
                 headers: {

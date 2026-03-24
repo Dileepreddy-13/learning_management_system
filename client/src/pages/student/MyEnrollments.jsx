@@ -13,9 +13,11 @@ const MyEnrollments = () => {
   const [progressData, setProgressData] = useState([])
 
   const getCourseProgress = async () => {
+    
     try {
+      if (!userData) return
       const token = await getToken({ template: 'backend' })
-
+      if (!token) return
       const tempProgressArray = await Promise.all(
         enrolledCourses.map(async (course) => {
           try {

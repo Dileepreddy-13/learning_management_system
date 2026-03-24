@@ -47,7 +47,9 @@ const Player = () => {
 
   const markLectureAsCompleted = async (lectureId) => {
     try {
+      if (!userData) return
       const token = await getToken({ template: 'backend' })
+      if (!token) return
       const { data } = await axios.post(`${backendURL}/api/user/update-course-progress`, {
         courseId, lectureId
       }, {
@@ -62,7 +64,9 @@ const Player = () => {
         toast.error(data.message)
       }
     } catch (error) {
-      toast.error(error.message)
+      if (error.response?.status !== 401) {
+        toast.error(error.message)
+      }
     }
   }
 
@@ -82,13 +86,17 @@ const Player = () => {
         toast.error(data.message)
       }
     } catch (error) {
-      toast.error(error.message)
+      if (error.response?.status !== 401) {
+        toast.error(error.message)
+      }
     }
   }
 
   const handleRate = async (rating) => {
     try {
+      if (!userData) return toast.warn('Login to rate')
       const token = await getToken({ template: 'backend' })
+      if (!token) return
       const { data } = await axios.post(`${backendURL}/api/user/add-rating`, {
         courseId,
         rating

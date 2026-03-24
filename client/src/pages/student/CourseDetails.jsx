@@ -32,7 +32,9 @@ const CourseDetails = () => {
         toast.error(data.message)
       }
     } catch (error) {
-      toast.error(error.message)
+      if (error.response?.status !== 401) {
+        toast.error(error.message)
+      }
     }
   }
 
@@ -45,6 +47,9 @@ const CourseDetails = () => {
         return toast.info('Already Enrolled')
       }
       const token = await getToken({ template: 'backend' })
+      if (!token) {
+        return toast.warn('Please login again')
+      }
       const { data } = await axios.post(`${backendURL}/api/user/purchase`, { courseId: courseData._id }, {
         headers: {
           Authorization: `Bearer ${token}`
