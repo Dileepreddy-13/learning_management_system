@@ -10,7 +10,7 @@ import axios from 'axios'
 
 const AddCourse = () => {
 
-  const { backendURL, getToken } = useContext(AppContext)
+  const { backendURL, getToken, refreshAppData } = useContext(AppContext)
   const quillRef = useRef(null)
   const editorRef = useRef(null)
 
@@ -144,6 +144,7 @@ const AddCourse = () => {
 
       if (data.success) {
         toast.success(data.message)
+        await refreshAppData()
         setCourseTitle('')
         quillRef.current.root.innerHTML = ''
         setCoursePrice(0)

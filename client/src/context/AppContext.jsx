@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { createContext } from 'react'
 import { dummyCourses } from '../assets/assets'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import humanizeDuration from 'humanize-duration'
 import { useAuth, useUser } from '@clerk/clerk-react'
 import axios from 'axios'
@@ -14,6 +14,7 @@ export const AppContextProvider = ({ children }) => {
     const backendURL = import.meta.env.VITE_BACKEND_URL
     const currency = import.meta.env.VITE_CURRENCY
     const navigate = useNavigate()
+    const location = useLocation()
 
     const { getToken } = useAuth()
     const { user } = useUser()
@@ -30,11 +31,14 @@ export const AppContextProvider = ({ children }) => {
             const { data } = await axios.get(`${backendURL}/api/course/all`)
             if (data.success) {
                 setAllCourses(data.courses)
+                return data.courses
             } else {
                 toast.error(data.message)
+                return []
             }
         } catch (error) {
             toast.error(error.message)
+            return []
         }
     }
 
@@ -63,11 +67,14 @@ export const AppContextProvider = ({ children }) => {
                 }
 
                 setUserData(user)
+                return user
             } else {
                 toast.error(data.message)
+                return null
             }
         } catch (error) {
             toast.error(error.message)
+            return null
         }
     }
 
@@ -114,12 +121,23 @@ export const AppContextProvider = ({ children }) => {
             })
             if (data.success) {
                 setEnrolledCourses(data.enrolledCourses.reverse())
+                return data.enrolledCourses
             }
             else {
                 toast.error(data.message)
+                return []
             }
         } catch (error) {
             toast.error(error.message)
+            return []
+        }
+    }
+
+    const refreshAppData = async ({ includeUserData = true } = {}) => {
+        await fetchCourses()
+
+        if (includeUserData && user) {
+            await Promise.all([fetchUserData(), fetchUserEnrolledCourses()])
         }
     }
 
@@ -133,11 +151,36 @@ export const AppContextProvider = ({ children }) => {
         if (user) {
             fetchUserData()
             fetchUserEnrolledCourses()
+        } else {
+            setUserData(null)
+            setEnrolledCourses([])
+            setIsEducator(false)
+        }
+    }, [user])
+
+    useEffect(() => {
+        const includeUserData = !location.pathname.includes('/loading/')
+        refreshAppData({ includeUserData })
+    }, [location.pathname])
+
+    useEffect(() => {
+        const refreshOnFocus = () => {
+            if (document.visibilityState === 'visible') {
+                refreshAppData()
+            }
+        }
+
+        window.addEventListener('focus', refreshOnFocus)
+        document.addEventListener('visibilitychange', refreshOnFocus)
+
+        return () => {
+            window.removeEventListener('focus', refreshOnFocus)
+            document.removeEventListener('visibilitychange', refreshOnFocus)
         }
     }, [user])
 
     const value = {
-        currency, allCourses, navigate, calculateRating, isEducator, setIsEducator, calculateChapterTime, calculateCourseTime, calculateTotalLectures, enrolledCourses, fetchUserEnrolledCourses, backendURL, userData, setUserData, getToken, fetchCourses, fetchUserData
+        currency, allCourses, navigate, calculateRating, isEducator, setIsEducator, calculateChapterTime, calculateCourseTime, calculateTotalLectures, enrolledCourses, fetchUserEnrolledCourses, backendURL, userData, setUserData, getToken, fetchCourses, fetchUserData, refreshAppData
     };
 
 

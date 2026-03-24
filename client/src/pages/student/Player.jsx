@@ -12,7 +12,7 @@ import axios from 'axios'
 
 const Player = () => {
 
-  const { enrolledCourses, calculateChapterTime, backendURL, getToken, fetchUserEnrolledCourses, userData } = useContext(AppContext)
+  const { enrolledCourses, calculateChapterTime, backendURL, getToken, fetchUserEnrolledCourses, userData, refreshAppData } = useContext(AppContext)
   const { courseId } = useParams()
   const [courseData, setCourseData] = useState(null)
   const [openSections, setOpenSections] = useState({})
@@ -99,7 +99,7 @@ const Player = () => {
       })
       if (data.success) {
         toast.success(data.message)
-        fetchUserEnrolledCourses()
+        await Promise.all([fetchUserEnrolledCourses(), refreshAppData()])
       } else {
         toast.error(data.message)
       }
